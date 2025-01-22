@@ -31,5 +31,10 @@
             <button type="submit" class="btn btn-primary" id="pay-btn" disabled>Thanh toán</button>
         </form>
     </div>
+    <script>
+        document.getElementById('payment_method').addEventListener('change', function() {
+            document.getElementById('pay-btn').disabled = this.value === '';
+        });
+    </script>
 </body>
 </html>
