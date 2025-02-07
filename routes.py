@@ -65,24 +65,47 @@ def index():
     full_name = user_data["full_name"] if user_data else "bạn"
     return render_template("index.html", products=products, cart_count=cart_count, fullname=full_name)
 
-@app.route("/add_to_cart/<product_id>")
+@app.route("/add_to_cart/<product_id>", methods=["POST"])
 @role_required("member")
 def add_to_cart(product_id):
-    current_user = json.loads(get_jwt_identity())
-    product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
-    if product:
-        mongo.db.users.update_one(
-            {"username": current_user["username"]},
-            {"$push": {"cart": {
-                "product_id": str(product["_id"]),
-                "name": product["name"],
-                "price": product["price"],
-                "quantity": 1,
-                "image": product["image"]
-            }}}
-        )
-        flash("Sản phẩm đã được thêm vào giỏ hàng", "success")
-    return redirect(url_for("index"))
+    try:
+        current_user = json.loads(get_jwt_identity())
+        product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+
+        if product:
+            # Thêm sản phẩm vào giỏ (nếu đã có thì tăng số lượng)
+            user = mongo.db.users.find_one({"username": current_user["username"]})
+            cart = user.get("cart", [])
+
+            # Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+            for item in cart:
+                if item["product_id"] == str(product["_id"]):
+                    item["quantity"] += 1
+                    break
+            else:
+                cart.append({
+                    "product_id": str(product["_id"]),
+                    "name": product["name"],
+                    "price": product["price"],
+                    "quantity": 1,
+                    "image": product["image"]
+                })
+
+            # Cập nhật lại giỏ hàng trong database
+            mongo.db.users.update_one(
+                {"username": current_user["username"]},
+                {"$set": {"cart": cart}}
+            )
+
+            # Tính lại số lượng sản phẩm trong giỏ
+            cart_count = sum(item["quantity"] for item in cart)
+
+            return {"message": "Sản phẩm đã được thêm vào giỏ hàng", "cart_count": cart_count}, 200
+
+        return {"error": "Không tìm thấy sản phẩm"}, 404
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"error": "Có lỗi xảy ra. Vui lòng thử lại sau."}, 500
 
 @app.route("/cart")
 @role_required("member")
@@ -135,12 +158,38 @@ def remove_from_cart(product_id):
 def checkout():
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
-    cart_items = user.get("cart", [])
-    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+
+    # Lấy sản phẩm trong giỏ hàng hoặc sản phẩm từ "Mua ngay"
+    cart_items = []
+    total_price = 0
+
+    product_id = request.args.get("product_id")
+    if product_id:
+        # Nếu có `product_id`, lấy thông tin sản phẩm để hiển thị
+        product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+        if product:
+            cart_items = [{
+                "product_id": str(product["_id"]),
+                "name": product["name"],
+                "price": product["price"],
+                "quantity": 1,
+                "image": product["image"]
+            }]
+            total_price = product["price"]
+    else:
+        # Nếu không có `product_id`, lấy danh sách giỏ hàng
+        cart_items = user.get("cart", [])
+        total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+
     if request.method == "POST":
         phone = request.form.get("phone")
         address = request.form.get("address")
         payment_method = request.form.get("payment_method")
+        if not cart_items:
+            flash("Không có sản phẩm để thanh toán!", "danger")
+            return redirect(url_for("cart"))
+
+        # Lưu đơn hàng
         mongo.db.orders.insert_one({
             "user_id": current_user["username"],
             "items": cart_items,
@@ -151,8 +200,12 @@ def checkout():
             "address": address,
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
-        mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
+
+        # Nếu là giỏ hàng, xóa sản phẩm trong giỏ hàng sau khi thanh toán
+        if not product_id:
+            mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
         return redirect(url_for("order_complete"))
+
     return render_template("checkout.html", cart_items=cart_items, total_price=total_price)
 
 @app.route("/order_complete")
@@ -200,6 +253,7 @@ def admin_index():
     products = mongo.db.products.find()
     return render_template("admin_index.html", products=products, fullname=full_name)
 
+
 @app.route("/admin/manage_orders", methods=["GET", "POST"])
 @role_required("admin")
 def manage_orders():
@@ -209,6 +263,7 @@ def manage_orders():
         mongo.db.orders.update_one({"_id": ObjectId(order_id)}, {"$set": {"status": new_status}})
         flash("Cập nhật trạng thái đơn hàng thành công", "success")
         return redirect(url_for("manage_orders"))
+
     orders = mongo.db.orders.find().sort("created_at", -1)
     return render_template("manage_orders.html", orders=orders)
 
@@ -221,6 +276,22 @@ def delete_product(product_id):
     except Exception as e:
         flash(f"Xóa sản phẩm thất bại: {str(e)}", "danger")
     return redirect(url_for("admin_index"))
+
+
+@app.route('/admin/delete_order/<order_id>', methods=['POST'])
+@role_required("admin")
+def delete_order(order_id):
+    try:
+        order = mongo.db.orders.find_one({"_id": ObjectId(order_id)})
+        if order:
+            mongo.db.orders.delete_one({"_id": ObjectId(order_id)})
+            flash('Đơn hàng đã được xóa thành công!', 'success')
+        else:
+            flash('Không tìm thấy đơn hàng!', 'danger')
+    except Exception as e:
+        flash(f'Lỗi khi xóa đơn hàng: {str(e)}', 'danger')
+
+    return redirect(url_for("manage_orders"))
 
 @app.route("/admin/edit_product/<product_id>", methods=["GET", "POST"])
 @role_required("admin")
@@ -247,6 +318,44 @@ def edit_product(product_id):
             flash(f"Cập nhật sản phẩm thất bại: {str(e)}", "danger")
         return redirect(url_for("admin_index"))
     return render_template("edit_product.html", product=product)
+
+@app.route("/admin/order_details/<order_id>", methods=["GET"])
+@role_required("admin")
+def order_details(order_id):
+    try:
+        from bson.errors import InvalidId
+        try:
+            order_id = ObjectId(order_id)  # Chuyển đổi sang ObjectId
+        except InvalidId:
+            return {"error": "ID đơn hàng không hợp lệ"}, 400
+
+        order = mongo.db.orders.find_one({"_id": order_id})
+        if not order:
+            return {"error": "Không tìm thấy đơn hàng"}, 404
+
+        user = mongo.db.users.find_one({"username": order["user_id"]})
+        customer_name = user["full_name"] if user else "Unknown"
+
+        aggregated_items = []
+        for item in order["items"]:
+            aggregated_items.append({
+                "name": item["name"],
+                "price": item["price"],
+                "image": item["image"],
+                "quantity": item["quantity"]
+            })
+
+        return {
+            "order_id": str(order["_id"]),
+            "customer_name": customer_name,
+            "address": order.get("address", "Không có thông tin"),
+            "items": aggregated_items,
+            "total_price": order["total_price"],
+            "status": order["status"]
+        }, 200
+
+    except Exception as e:
+        return {"error": f"Lỗi hệ thống: {str(e)}"}, 500
 
 @app.route("/logout")
 def logout():
