@@ -9,32 +9,66 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center mt-4">Thanh toán</h1>
-        <form method="POST">
+        <!-- Phần tiêu đề và nút quay lại -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <h1 class="text-primary">Thanh toán</h1>
+            <a id="back-button" class="btn btn-secondary">Quay lại</a>
+        </div>
+
+        <!-- Phần thông tin sản phẩm -->
+        <h2 class="mt-4">Thông tin sản phẩm</h2>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Hình ảnh</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Tổng</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td><img src="{{ item['image'] }}" alt="{{ item['name'] }}" style="max-width: 70px; border-radius: 5px;"></td>
+                    <td>{{ item['name'] }}</td>
+                    <td>{{ item['quantity'] }}</td>
+                    <td>{{ "{:,.0f}".format(item['price']) }} VND</td>
+                    <td>{{ "{:,.0f}".format(item['quantity'] * item['price']) }} VND</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Tổng tiền:</th>
+                    <th>{{ "{:,.0f}".format(total_price) }} VND</th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Phần nhập thông tin thanh toán -->
+        <h2 class="mt-4">Nhập thông tin thanh toán</h2>
+        <form method="POST" action="/checkout" class="mt-3">
             <div class="mb-3">
                 <label for="phone" class="form-label">Số điện thoại</label>
-                <input type="text" class="form-control" id="phone" name="phone" required>
+                <input type="text" id="phone" name="phone" class="form-control" placeholder="Nhập số điện thoại của bạn" required>
             </div>
             <div class="mb-3">
                 <label for="address" class="form-label">Địa chỉ</label>
-                <textarea class="form-control" id="address" name="address" required></textarea>
+                <textarea id="address" name="address" class="form-control" rows="3" placeholder="Nhập địa chỉ giao hàng" required></textarea>
             </div>
             <div class="mb-3">
                 <label for="payment_method" class="form-label">Phương thức thanh toán</label>
-                <select class="form-select" id="payment_method" name="payment_method" required>
+                <select id="payment_method" name="payment_method" class="form-select" required>
                     <option value="">-- Chọn phương thức thanh toán --</option>
-                    <option value="Thanh toán tiền mặt">Thanh toán tiền mặt</option>
-                    <option value="VNPAY">VNPAY</option>
-                    <option value="VISA">VISA</option>
+                    <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                    <option value="Bank Transfer">Chuyển khoản ngân hàng</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary" id="pay-btn" disabled>Thanh toán</button>
+            <button type="submit" class="btn btn-primary">Thanh toán</button>
         </form>
     </div>
-    <script>
-        document.getElementById('payment_method').addEventListener('change', function() {
-            document.getElementById('pay-btn').disabled = this.value === '';
-        });
-    </script>
+
+<script src="{{url_for('static', filename='scripts.js')}}"></script>
 </body>
 </html>
