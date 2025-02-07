@@ -7,21 +7,80 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     <script>
-        function openUpdateForm(orderId, currentStatus) {
-            document.getElementById('updateOrderId').value = orderId;
-            document.getElementById('currentStatus').innerText = currentStatus;
-            document.getElementById('layer2').style.display = 'flex';
+        function showOverlay() {
+            document.getElementById("overlay").classList.add("active");
         }
 
-        function closeUpdateForm() {
-            document.getElementById('layer2').style.display = 'none';
+        function hideOverlay() {
+            document.getElementById("overlay").classList.remove("active");
         }
+
+        function openUpdateForm(orderId, currentStatus) {
+    document.getElementById('updateOrderId').value = orderId;
+    document.getElementById('currentStatus').innerText = currentStatus;
+    document.getElementById('layer2').style.display = 'flex';
+    showOverlay(); // Kích hoạt nền mờ
+}
+
+        function closeUpdateForm() {
+    document.getElementById('layer2').style.display = 'none';
+    hideOverlay(); // Ẩn nền mờ
+}
 
         document.addEventListener("DOMContentLoaded", function () {
             const cancelButton = document.getElementById("cancelButton");
             if (cancelButton) {
                 cancelButton.addEventListener("click", closeUpdateForm);
             }
+        });
+
+        function viewOrderDetails(orderId) {
+    fetch(`/admin/order_details/${orderId}`)
+        .then(response => response.json())
+        .then(data => {
+            const detailsContent = document.getElementById("order-details-content");
+            detailsContent.innerHTML = `
+                <p><strong>Mã đơn hàng:</strong> ${data.order_id}</p>
+                <p><strong>Khách hàng:</strong> ${data.customer_name}</p>
+                <p><strong>Địa chỉ giao hàng:</strong> ${data.address}</p>
+                <p><strong>Trạng thái:</strong> ${data.status}</p>
+                <p><strong>Tổng tiền:</strong> ${data.total_price.toLocaleString()} VND</p>
+                <h5>Danh sách sản phẩm:</h5>
+                <ul>
+                    ${data.items.map(item => `
+                        <li style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <img src="${item.image}" alt="${item.name}" style="width:50px; margin-right:10px;">
+                            <div>
+                                <strong>${item.name}</strong><br>
+                                ${item.quantity} x ${item.price.toLocaleString()} VND
+                            </div>
+                        </li>
+                    `).join("")}
+                </ul>
+            `;
+            document.getElementById("orderDetailsLayer").style.display = "flex";
+            showOverlay(); // Kích hoạt nền mờ
+        })
+        .catch(error => alert(error.message));
+}
+
+        function closeOrderDetails() {
+    document.getElementById("orderDetailsLayer").style.display = "none";
+    hideOverlay(); // Ẩn nền mờ
+}
+
+        document.querySelectorAll('.btn-danger').forEach(button => {
+            button.addEventListener('click', function (event) {
+                const confirmDelete = confirm('Bạn có chắc chắn muốn xóa đơn hàng này?');
+                if (!confirmDelete) {
+                    event.preventDefault(); // Hủy bỏ hành động nếu không xác nhận
+                }
+            });
+        });
+
+        document.getElementById("overlay").addEventListener("click", function () {
+            closeOrderDetails();
+            closeUpdateForm();
         });
     </script>
 </head>
@@ -50,7 +109,11 @@
                     <td>{{ "{:,.0f}".format(order['total_price']) }} VND</td>
                     <td>{{ order['status'] }}</td>
                     <td>
-                        <button class="btn btn-primary" onclick="openUpdateForm('{{ order['_id'] }}', '{{ order['status'] }}')">Cập nhật</button>
+                        <button class="btn btn-info btn-sm" onclick="viewOrderDetails('{{ order['_id'] }}')">Chi tiết</button>
+                        <button class="btn btn-primary btn-sm" onclick="openUpdateForm('{{ order['_id'] }}', '{{ order['status'] }}')">Cập nhật</button>
+                        <form method="POST" action="/admin/delete_order/{{ order['_id'] }}" style="display:inline-block;">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Xóa</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
@@ -76,5 +139,19 @@
             </form>
         </div>
     </div>
+
+        <!-- Form chi tiết đơn hàng -->
+    <div id="orderDetailsLayer" class="layer2">
+        <div class="form-popup">
+            <h3 class="text-center mb-4">Chi tiết đơn hàng</h3>
+            <div id="order-details-content">
+                <!-- Nội dung chi tiết đơn hàng sẽ được thêm qua JavaScript -->
+            </div>
+            <button class="btn btn-secondary mt-3" onclick="closeOrderDetails()">Đóng</button>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+    <script src="/static/script.js"></script>
 </body>
 </html>
