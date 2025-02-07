@@ -6,42 +6,58 @@
     <title>Quản lý sản phẩm</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.2/font/bootstrap-icons.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center mt-4">Quản lý sản phẩm</h1>
-        <a href="/admin/manage_orders" class="btn btn-info mb-3">Quản lý đơn hàng</a>
-        <a href="/logout" class="btn btn-danger float-end">Logout</a>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-primary fw-bold">Quản lý sản phẩm</h1>
+            <div class="admin-actions">
+                <a href="/admin/manage_orders" class="btn btn-secondary me-2">Quản lý đơn hàng</a>
+                <a href="/logout" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
 
         <!-- Bảng sản phẩm -->
-        <table class="table mt-5">
-            <thead>
-                <tr>
-                    <th>Hình ảnh</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Giá (VND)</th>
-                    <th>Số lượng</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                <tr>
-                    <td><img src="{{ product['image'] }}" style="width: 50px;"></td>
-                    <td>{{ product['name'] }}</td>
-                    <td>{{ "{:,.0f}".format(product['price']) }}</td>
-                    <td>{{ product['quantity'] }}</td>
-                    <td>
-                        <button class="btn btn-warning" onclick="openEditForm('{{ product['_id'] }}', '{{ product['name'] }}', '{{ product['price'] }}', '{{ product['quantity'] }}')">Sửa</button>
-                        <form method="POST" action="/admin/delete_product/{{ product['_id'] }}" style="display:inline-block;">
-                            <button type="submit" class="btn btn-danger">Xóa</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <button id="add-product-btn" class="btn btn-primary mt-4">Thêm sản phẩm</button>
+        <div class="table-responsive shadow rounded-3 p-3 bg-white">
+            <table class="table table-hover align-middle">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Hình ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá (VND)</th>
+                        <th>Số lượng</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td><img src="{{ product['image'] }}" class="product-img"></td>
+                        <td>{{ product['name'] }}</td>
+                        <td>{{ "{:,.0f}".format(product['price']) }}</td>
+                        <td>{{ product['quantity'] }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-edit me-2" onclick="openEditForm('{{ product['_id'] }}', '{{ product['name'] }}', '{{ product['price'] }}', '{{ product['quantity'] }}')">
+                                <i class="bi bi-pencil-fill"></i> Sửa
+                            </button>
+                            <form method="POST" action="/admin/delete_product/{{ product['_id'] }}" style="display:inline-block;">
+                                <button type="submit" class="btn btn-outline-danger btn-delete">
+                                    <i class="bi bi-trash-fill"></i> Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-end mt-4">
+            <button id="add-product-btn" class="btn btn-primary btn-lg rounded-pill">
+                <i class="bi bi-plus-circle-fill"></i> Thêm sản phẩm
+            </button>
+        </div>
     </div>
 
     <!-- Layer 1 (Nền mờ) -->
@@ -50,7 +66,7 @@
     <!-- Layer 2 (Form Thêm sản phẩm) -->
     <div id="layer2" class="layer2">
         <form method="POST" enctype="multipart/form-data" id="productForm" class="form-popup">
-            <h3 id="form-title" class="text-center mb-4">Thêm sản phẩm</h3>
+            <h3 id="form-title" class="text-center mb-4 fw-bold">Thêm sản phẩm</h3>
             <div class="mb-3">
                 <label for="name" class="form-label">Tên sản phẩm:</label>
                 <input type="text" class="form-control" id="name" name="name" required>
@@ -69,8 +85,8 @@
             </div>
             <input type="hidden" id="product_id" name="product_id">
             <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-success me-2" id="form-submit-btn">Lưu</button>
-                <button type="button" id="cancel-btn" class="btn btn-secondary">Hủy</button>
+                <button type="submit" class="btn btn-success me-2 rounded-pill" id="form-submit-btn">Lưu</button>
+                <button type="button" id="cancel-btn" class="btn btn-secondary rounded-pill">Hủy</button>
             </div>
         </form>
     </div>
