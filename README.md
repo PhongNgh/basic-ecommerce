@@ -6,7 +6,7 @@ This project is a basic e-commerce web application built using **Flask** as the 
 
 ### For Admins:
 - Add, edit, and delete products in the catalog.
-- Update the status of individual orders.
+- Manage the status of individual orders.
 
 ### For Members:
 - Add products to the shopping cart.
