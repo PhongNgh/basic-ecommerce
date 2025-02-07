@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "aSgQwIfN0d")
@@ -11,3 +12,5 @@ class Config:
     JWT_ACCESS_COOKIE_NAME = "access_token_cookie"
     JWT_COOKIE_SECURE = False
     JWT_COOKIE_CSRF_PROTECT = False
+    JWT_SESSION_COOKIE = True
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
