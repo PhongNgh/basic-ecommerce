@@ -325,7 +325,7 @@ def order_details(order_id):
     try:
         from bson.errors import InvalidId
         try:
-            order_id = ObjectId(order_id)  # Chuyển đổi sang ObjectId
+            order_id = ObjectId(order_id)
         except InvalidId:
             return {"error": "ID đơn hàng không hợp lệ"}, 400
 
@@ -336,26 +336,34 @@ def order_details(order_id):
         user = mongo.db.users.find_one({"username": order["user_id"]})
         customer_name = user["full_name"] if user else "Unknown"
 
-        aggregated_items = []
+        # Gộp sản phẩm trùng nhau
+        aggregated_items = {}
         for item in order["items"]:
-            aggregated_items.append({
-                "name": item["name"],
-                "price": item["price"],
-                "image": item["image"],
-                "quantity": item["quantity"]
-            })
+            key = item["name"]
+            if key not in aggregated_items:
+                aggregated_items[key] = {
+                    "name": item["name"],
+                    "price": item["price"],
+                    "image": item["image"],
+                    "quantity": item["quantity"]
+                }
+            else:
+                aggregated_items[key]["quantity"] += item["quantity"]
 
-        return {
+        # Chuẩn bị dữ liệu chi tiết đơn hàng
+        order_details = {
             "order_id": str(order["_id"]),
             "customer_name": customer_name,
             "address": order.get("address", "Không có thông tin"),
-            "items": aggregated_items,
+            "items": list(aggregated_items.values()),
             "total_price": order["total_price"],
-            "status": order["status"]
-        }, 200
+            "status": order["status"],
+        }
 
+        return order_details
     except Exception as e:
-        return {"error": f"Lỗi hệ thống: {str(e)}"}, 500
+        print(f"Error fetching order details: {e}")
+        return {"error": "Không thể tải chi tiết đơn hàng. Vui lòng thử lại sau."}, 500
 
 @app.route("/logout")
 def logout():
