@@ -9,6 +9,26 @@
 </head>
 <body>
     <div class="container mt-5">
+        <!-- Hiển thị thông báo -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div id="toast-container">
+            {% for category, message in messages %}
+            <div class="toast-item {{ category }}">
+                <div class="toast-content">
+                    <span class="toast-icon">{% if category == "success" %}✔️{% else %}❌{% endif %}</span>
+                    <div class="toast-message">
+                        <p>{{ "Thông báo" }}</p>
+                        <small>{{ message }}</small>
+                    </div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.style.display='none';">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
         <div class="d-flex justify-content-between align-items-center">
             <h1>Giỏ hàng của bạn</h1>
             <a href="/" class="btn btn-secondary">Quay lại</a>
@@ -49,8 +69,11 @@
 
         <div class="d-flex justify-content-between align-items-center mt-4">
             <h3>Tổng tiền: {{ "{:,.0f}".format(total_price) }} VND</h3>
-            <a href="/checkout?from=cart" class="btn btn-primary">Thanh toán</a>
+            <form method="POST" action="/cart">
+                <button type="submit" class="btn btn-primary">Thanh toán</button>
+            </form>
         </div>
     </div>
+<script src="/static/scripts.js"></script>
 </body>
 </html>

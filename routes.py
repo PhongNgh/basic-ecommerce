@@ -107,21 +107,21 @@ def add_to_cart(product_id):
         print(f"Error: {e}")
         return {"error": "Có lỗi xảy ra. Vui lòng thử lại sau."}, 500
 
-@app.route("/cart")
+@app.route("/cart", methods=["GET", "POST"])
 @role_required("member")
 def cart():
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
     cart_items = user.get("cart", [])
-    aggregated_cart = {}
-    for item in cart_items:
-        if item["product_id"] in aggregated_cart:
-            aggregated_cart[item["product_id"]]["quantity"] += 1
-        else:
-            aggregated_cart[item["product_id"]] = item
-    aggregated_cart = list(aggregated_cart.values())
-    total_price = sum(item["price"] * item["quantity"] for item in aggregated_cart)
-    return render_template("cart.html", cart_items=aggregated_cart, total_price=total_price)
+    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+
+    if request.method == "POST":
+        if not cart_items:
+            flash("Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.", "danger")
+            return redirect(url_for("cart"))
+        return redirect(url_for("checkout"))
+
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
 
 @app.route("/update_cart/<product_id>/<action>")
 @role_required("member")
@@ -159,13 +159,17 @@ def checkout():
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
 
-    # Lấy sản phẩm trong giỏ hàng hoặc sản phẩm từ "Mua ngay"
-    cart_items = []
-    total_price = 0
-
+    # Kiểm tra trạng thái giỏ hàng
+    cart_items = user.get("cart", [])
     product_id = request.args.get("product_id")
+
+    # Nếu giỏ hàng trống và không có sản phẩm được truyền trực tiếp
+    if not cart_items and not product_id:
+        flash("Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.", "danger")
+        return redirect(url_for("cart"))  # Chuyển hướng về trang giỏ hàng
+
+    # Xử lý sản phẩm nếu "Mua ngay"
     if product_id:
-        # Nếu có `product_id`, lấy thông tin sản phẩm để hiển thị
         product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
         if product:
             cart_items = [{
@@ -175,21 +179,18 @@ def checkout():
                 "quantity": 1,
                 "image": product["image"]
             }]
-            total_price = product["price"]
-    else:
-        # Nếu không có `product_id`, lấy danh sách giỏ hàng
-        cart_items = user.get("cart", [])
-        total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+
+    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
 
     if request.method == "POST":
         phone = request.form.get("phone")
         address = request.form.get("address")
         payment_method = request.form.get("payment_method")
+
         if not cart_items:
             flash("Không có sản phẩm để thanh toán!", "danger")
             return redirect(url_for("cart"))
 
-        # Lưu đơn hàng
         mongo.db.orders.insert_one({
             "user_id": current_user["username"],
             "items": cart_items,
@@ -201,9 +202,8 @@ def checkout():
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
 
-        # Nếu là giỏ hàng, xóa sản phẩm trong giỏ hàng sau khi thanh toán
-        if not product_id:
-            mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
+        # Xóa giỏ hàng sau khi thanh toán
+        mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
         return redirect(url_for("order_complete"))
 
     return render_template("checkout.html", cart_items=cart_items, total_price=total_price)

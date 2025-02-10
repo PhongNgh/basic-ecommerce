@@ -13,3 +13,16 @@ document.getElementById("back-button").addEventListener("click", function () {
     }
 });
 
+document.querySelector(".checkout-btn").addEventListener("click", function(event) {
+    const cartItems = document.querySelectorAll(".cart-item");
+    if (cartItems.length === 0) {
+        alert("Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.");
+        event.preventDefault(); // Ngăn không cho chuyển hướng
+    }
+});
+
+document.querySelectorAll(".toast-item").forEach((toast) => {
+    setTimeout(() => {
+        toast.remove();
+    }, 3000); // 3 giây
+});
