@@ -369,7 +369,7 @@ form button:hover {
 }
 
 .toast-item {
-    position: relative; /* Đảm bảo phần tử cha có thể định vị phần tử con */
+    position: relative;
     background: #ffffff;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -390,7 +390,7 @@ form button:hover {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    pointer-events: none; /* Ngăn chặn thông báo cản trở tương tác */
+    pointer-events: none;
 }
 
 .toast-item {
@@ -404,7 +404,7 @@ form button:hover {
     border-left: 5px solid #4caf50;
     animation: slide-in 0.3s ease-out, fade-out 0.3s ease-out 2.7s forwards;
     position: relative;
-    pointer-events: auto; /* Chỉ cho phép tương tác với chính thông báo */
+    pointer-events: auto;
 }
 
 .toast-item.success {
@@ -430,5 +430,5 @@ form button:hover {
 }
 
 .toast-item .toast-close {
-    pointer-events: auto; /* Cho phép bấm nút đóng */
+    pointer-events: auto;
 }
