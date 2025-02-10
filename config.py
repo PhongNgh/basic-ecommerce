@@ -3,7 +3,7 @@ from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "aSgQwIfN0d")
-    MONGO_URI = "mongodb://localhost:27017/ecommerce"
+    MONGO_URI = "mongodb+srv://test:12341234@cluster0.i3vkq.mongodb.net/ecommerce?retryWrites=true&w=majority&appName=Cluster0"
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "hOfrkNASyPMHArsIIMretH27L65PdKS8")
     CACHE_TYPE = "RedisCache"
     CACHE_REDIS_HOST = "localhost"
