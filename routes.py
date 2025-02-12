@@ -1,6 +1,8 @@
-from flask import render_template, request, redirect, url_for, flash, make_response
+from flask import render_template, request, redirect, url_for, flash, make_response, session
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+
 from run import app, mongo
 from middleware import role_required, log_request
 from bson.objectid import ObjectId
@@ -65,6 +67,15 @@ def index():
     full_name = user_data["full_name"] if user_data else "bạn"
     return render_template("index.html", products=products, cart_count=cart_count, fullname=full_name)
 
+@app.route("/product/<product_id>")
+def product_detail(product_id):
+    # Lấy thông tin sản phẩm từ cơ sở dữ liệu dựa trên product_id
+    product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+    if product:
+        return render_template("product_detail.html", product=product)
+    else:
+        return "Sản phẩm không tồn tại!", 404
+
 @app.route("/add_to_cart/<product_id>", methods=["POST"])
 @role_required("member")
 def add_to_cart(product_id):
@@ -80,7 +91,7 @@ def add_to_cart(product_id):
             # Kiểm tra sản phẩm đã có trong giỏ hàng chưa
             for item in cart:
                 if item["product_id"] == str(product["_id"]):
-                    item["quantity"] += 1
+                    item["quantity"] += 1  # Nếu có thì tăng số lượng
                     break
             else:
                 cart.append({
@@ -129,17 +140,24 @@ def update_cart(product_id, action):
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
     cart = user.get("cart", [])
+
     if action == "increase":
         for item in cart:
             if item["product_id"] == product_id:
-                cart.append(item)
+                item["quantity"] += 1  # Tăng số lượng thay vì tạo mới
                 break
     elif action == "decrease":
         for item in cart:
             if item["product_id"] == product_id:
-                cart.remove(item)
+                if item["quantity"] > 1:
+                    item["quantity"] -= 1  # Giảm số lượng nếu lớn hơn 1
+                else:
+                    cart.remove(item)  # Xóa sản phẩm khỏi giỏ nếu số lượng = 1
                 break
+
+    # Cập nhật lại giỏ hàng trong database
     mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": cart}})
+
     return redirect(url_for("cart"))
 
 @app.route("/remove_from_cart/<product_id>")
@@ -159,35 +177,35 @@ def checkout():
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
 
-    # Kiểm tra trạng thái giỏ hàng
-    cart_items = user.get("cart", [])
+    # Lấy product_id từ URL khi nhấn "Mua ngay"
     product_id = request.args.get("product_id")
 
-    # Nếu giỏ hàng trống và không có sản phẩm được truyền trực tiếp
-    if not cart_items and not product_id:
-        flash("Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.", "danger")
-        return redirect(url_for("cart"))  # Chuyển hướng về trang giỏ hàng
-
-    # Xử lý sản phẩm nếu "Mua ngay"
+    # Nếu có product_id, chúng ta sẽ lấy sản phẩm đó và tạo giỏ hàng ảo
     if product_id:
         product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
-        if product:
-            cart_items = [{
-                "product_id": str(product["_id"]),
-                "name": product["name"],
-                "price": product["price"],
-                "quantity": 1,
-                "image": product["image"]
-            }]
+        cart_items = [{
+            "product_id": str(product["_id"]),
+            "name": product["name"],
+            "price": product["price"],
+            "quantity": 1,
+            "image": product["image"]
+        }]
+
+        # Lưu giỏ hàng ảo vào session
+        session["temp_cart"] = cart_items
+    else:
+        # Nếu không có product_id, lấy giỏ hàng ảo từ session
+        cart_items = session.get("temp_cart", [])
 
     total_price = sum(item["price"] * item["quantity"] for item in cart_items)
 
+    # Khi người dùng nhấn thanh toán
     if request.method == "POST":
         phone = request.form.get("phone")
         address = request.form.get("address")
         payment_method = request.form.get("payment_method")
 
-        if not cart_items:
+        if not cart_items:  # Nếu không có sản phẩm để thanh toán
             flash("Không có sản phẩm để thanh toán!", "danger")
             return redirect(url_for("cart"))
 
@@ -202,8 +220,12 @@ def checkout():
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
 
-        # Xóa giỏ hàng sau khi thanh toán
+        # Sau khi thanh toán thành công, giỏ hàng ảo sẽ được xóa
+        session.pop("temp_cart", None)
+
+        # Xóa giỏ hàng thật (nếu có) sau khi thanh toán
         mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
+
         return redirect(url_for("order_complete"))
 
     return render_template("checkout.html", cart_items=cart_items, total_price=total_price)
@@ -252,7 +274,6 @@ def admin_index():
 
     products = mongo.db.products.find()
     return render_template("admin_index.html", products=products, fullname=full_name)
-
 
 @app.route("/admin/manage_orders", methods=["GET", "POST"])
 @role_required("admin")

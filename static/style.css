@@ -366,6 +366,21 @@ form button:hover {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     background-color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.1);
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .toast-item {
@@ -431,4 +446,23 @@ form button:hover {
 
 .toast-item .toast-close {
     pointer-events: auto;
+}
+
+/* Thiết kế lại nút "Theo dõi đơn hàng" */
+.btn-track-order {
+    padding: 10px 20px; /* Đảm bảo padding đủ rộng để nút vừa với chữ */
+    font-size: 1rem; /* Đảm bảo kích thước chữ phù hợp */
+    border-radius: 50px; /* Bo tròn góc */
+    background-color: #6c757d; /* Màu nền giống nút "Tiếp tục mua hàng" */
+    color: #fff; /* Màu chữ trắng */
+    text-decoration: none; /* Không có gạch chân */
+    display: inline-block;
+    text-align: center;
+    width: auto;
+    transition: background-color 0.2s ease, transform 0.2s ease; /* Thêm hiệu ứng hover */
+}
+
+.btn-track-order:hover {
+    background-color: #5a6268; /* Màu nền khi hover */
+    transform: scale(1.05); /* Hiệu ứng phóng to khi hover */
 }
