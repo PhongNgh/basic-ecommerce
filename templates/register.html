@@ -13,7 +13,7 @@
       <h2 class="text-center text-primary mb-4">Create Your Account</h2>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          <div class="alert alert-danger" role="alert">
+          <div class="alert alert-success" role="alert">
             {% for category, message in messages %}
               <p class="mb-0">{{ message }}</p>
             {% endfor %}

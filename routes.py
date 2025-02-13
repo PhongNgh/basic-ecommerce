@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, make_response, session
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
+from flask_jwt_extended import create_access_token, get_jwt_identity
+from werkzeug.security import check_password_hash
 
+from models import User
 from run import app, mongo
 from middleware import role_required, log_request
 from bson.objectid import ObjectId
@@ -40,21 +40,20 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
+
         if password != confirm_password:
             flash("Passwords do not match", "danger")
             return redirect(url_for("register"))
-        if mongo.db.users.find_one({"username": username}):
+
+        existing_user = User.find_by_username(username)
+        if existing_user:
             flash("Username already exists", "danger")
         else:
-            hashed_password = generate_password_hash(password)
-            mongo.db.users.insert_one({
-                "username": username,
-                "password": hashed_password,
-                "full_name": full_name,
-                "role": "member"
-            })
+            new_user = User(full_name, username, password)
+            new_user.save()
             flash("Registration successful", "success")
             return redirect(url_for("login"))
+
     return render_template("register.html")
 
 @app.route("/")
