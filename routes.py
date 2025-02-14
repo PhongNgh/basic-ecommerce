@@ -2,12 +2,22 @@ from flask import render_template, request, redirect, url_for, flash, make_respo
 from flask_jwt_extended import create_access_token, get_jwt_identity
 from werkzeug.security import check_password_hash
 
-from models import User
+from models import User, Product
 from run import app, mongo
 from middleware import role_required, log_request
 from bson.objectid import ObjectId
 from datetime import datetime
 import json, os
+from config import Config
+
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+    cloud_name=Config.CLOUDINARY_CLOUD_NAME,
+    api_key=Config.CLOUDINARY_API_KEY,
+    api_secret=Config.CLOUDINARY_API_SECRET
+)
 
 @app.before_request
 def before_request_middleware():
@@ -75,6 +85,22 @@ def product_detail(product_id):
     else:
         return "Sản phẩm không tồn tại!", 404
 
+@app.route("/cart", methods=["GET", "POST"])
+@role_required("member")
+def cart():
+    current_user = json.loads(get_jwt_identity())
+    user = mongo.db.users.find_one({"username": current_user["username"]})
+    cart_items = user.get("cart", [])
+    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
+
+    if request.method == "POST":
+        if not cart_items:
+            flash("Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.", "danger")
+            return redirect(url_for("cart"))
+        return redirect(url_for("checkout"))
+
+    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
+
 @app.route("/add_to_cart/<product_id>", methods=["POST"])
 @role_required("member")
 def add_to_cart(product_id):
@@ -116,22 +142,6 @@ def add_to_cart(product_id):
     except Exception as e:
         print(f"Error: {e}")
         return {"error": "Có lỗi xảy ra. Vui lòng thử lại sau."}, 500
-
-@app.route("/cart", methods=["GET", "POST"])
-@role_required("member")
-def cart():
-    current_user = json.loads(get_jwt_identity())
-    user = mongo.db.users.find_one({"username": current_user["username"]})
-    cart_items = user.get("cart", [])
-    total_price = sum(item["price"] * item["quantity"] for item in cart_items)
-
-    if request.method == "POST":
-        if not cart_items:
-            flash("Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.", "danger")
-            return redirect(url_for("cart"))
-        return redirect(url_for("checkout"))
-
-    return render_template("cart.html", cart_items=cart_items, total_price=total_price)
 
 @app.route("/update_cart/<product_id>/<action>")
 @role_required("member")
@@ -244,35 +254,90 @@ def order_tracking():
 @app.route("/admin", methods=["GET", "POST"])
 @role_required("admin")
 def admin_index():
-    upload_folder = "static/uploads"
-    os.makedirs(upload_folder, exist_ok=True)
-
     # Lấy thông tin user để hiển thị fullname
     current_user = json.loads(get_jwt_identity())
     user_data = mongo.db.users.find_one({"username": current_user["username"]})
     full_name = user_data["full_name"] if user_data else "Admin"
 
+    # Nếu là phương thức POST thì thực hiện thêm hoặc sửa sản phẩm
     if request.method == "POST":
+        product_id = request.form.get("product_id")  # Lấy product_id để kiểm tra nếu là sửa
         name = request.form.get("name")
         price = request.form.get("price")
         quantity = request.form.get("quantity")
-        image = request.files["image"]
+        gender = request.form.get("gender")
+        size = request.form.get("size")
+        brand = request.form.get("brand")
+        year = request.form.get("year")
+        origin = request.form.get("origin")
+        material = request.form.get("material")
+        technology = request.form.get("technology")
+        image_file = request.files.get("image")
+
+        # Kiểm tra nếu có ảnh
+        image_url = None
+        if image_file:
+            try:
+                upload_result = cloudinary.uploader.upload(image_file)
+                image_url = upload_result['secure_url']
+            except Exception as e:
+                flash(f"Lỗi khi tải lên ảnh: {e}", "danger")
+                image_url = None
+
         try:
-            image_path = f"{upload_folder}/{image.filename}"
-            image.save(image_path)
-            mongo.db.products.insert_one({
-                "name": name,
-                "price": int(price),
-                "quantity": int(quantity),
-                "image": f"/{image_path}"
-            })
-            flash("Thêm sản phẩm thành công", "success")
+            if product_id:  # Sửa sản phẩm
+                # Cập nhật sản phẩm trong MongoDB
+                mongo.db.products.update_one(
+                    {"_id": ObjectId(product_id)},
+                    {"$set": {
+                        "name": name,
+                        "price": int(price),
+                        "quantity": int(quantity),
+                        "gender": gender,
+                        "size": size,
+                        "brand": brand,
+                        "year": year,
+                        "origin": origin,
+                        "material": material,
+                        "technology": technology,
+                        "image": image_url if image_url else None
+                    }}
+                )
+                flash("Sửa sản phẩm thành công", "success")
+            else:  # Thêm sản phẩm
+                if image_url:
+                    # Lưu sản phẩm vào MongoDB với URL ảnh từ Cloudinary
+                    mongo.db.products.insert_one({
+                        "name": name,
+                        "price": int(price),
+                        "quantity": int(quantity),
+                        "gender": gender,
+                        "size": size,
+                        "brand": brand,
+                        "year": year,
+                        "origin": origin,
+                        "material": material,
+                        "technology": technology,
+                        "image": image_url
+                    })
+                    flash("Thêm sản phẩm thành công", "success")
+                else:
+                    flash("Vui lòng tải lên hình ảnh sản phẩm!", "danger")
         except Exception as e:
             flash(f"Lỗi: {e}", "danger")
+
         return redirect(url_for("admin_index"))
 
+    # Lấy danh sách sản phẩm từ MongoDB
     products = mongo.db.products.find()
-    return render_template("admin_index.html", products=products, fullname=full_name)
+
+    # Kiểm tra nếu có product_id trong URL thì tìm sản phẩm đó để sửa
+    selected_product = None
+    if request.args.get("edit_product_id"):
+        product_id = request.args.get("edit_product_id")
+        selected_product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+
+    return render_template("admin_index.html", products=products, fullname=full_name, selected_product=selected_product)
 
 @app.route("/admin/manage_orders", methods=["GET", "POST"])
 @role_required("admin")
@@ -297,7 +362,6 @@ def delete_product(product_id):
         flash(f"Xóa sản phẩm thất bại: {str(e)}", "danger")
     return redirect(url_for("admin_index"))
 
-
 @app.route('/admin/delete_order/<order_id>', methods=['POST'])
 @role_required("admin")
 def delete_order(order_id):
@@ -313,31 +377,67 @@ def delete_order(order_id):
 
     return redirect(url_for("manage_orders"))
 
+
 @app.route("/admin/edit_product/<product_id>", methods=["GET", "POST"])
 @role_required("admin")
 def edit_product(product_id):
     product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+
     if request.method == "POST":
         name = request.form.get("name")
         price = int(request.form.get("price"))
         quantity = int(request.form.get("quantity"))
+        gender = request.form.get("gender")
+        size = request.form.get("size")
+        brand = request.form.get("brand")
+        year = request.form.get("year")
+        origin = request.form.get("origin")
+        material = request.form.get("material")
+        technology = request.form.get("technology")
+
         image = request.files.get("image")
-        update_data = {"name": name, "price": price, "quantity": quantity}
+
+        # Cập nhật thông tin sản phẩm
+        update_data = {
+            "name": name,
+            "price": price,
+            "quantity": quantity,
+            "gender": gender,
+            "size": size,
+            "brand": brand,
+            "year": year,
+            "origin": origin,
+            "material": material,
+            "technology": technology
+        }
+
+        # Nếu có ảnh mới thì lưu ảnh mới vào Cloudinary
         if image:
             upload_folder = "static/uploads"
             os.makedirs(upload_folder, exist_ok=True)
             image_path = f"{upload_folder}/{image.filename}"
             image.save(image_path)
             update_data["image"] = f"/{image_path}"
+
         try:
+            # Cập nhật sản phẩm trong cơ sở dữ liệu
             mongo.db.products.update_one(
                 {"_id": ObjectId(product_id)}, {"$set": update_data}
             )
             flash("Cập nhật sản phẩm thành công!", "success")
         except Exception as e:
             flash(f"Cập nhật sản phẩm thất bại: {str(e)}", "danger")
+
         return redirect(url_for("admin_index"))
-    return render_template("edit_product.html", product=product)
+
+    return render_template("admin_index.html", product=product)
+
+@app.template_filter('format_price')
+def format_price(value):
+    if isinstance(value, int) or isinstance(value, float):
+        return "{:,.0f}".format(value)  # Định dạng giá trị thành số có dấu phân cách hàng nghìn
+    return value
+
 
 @app.route("/admin/order_details/<order_id>", methods=["GET"])
 @role_required("admin")
