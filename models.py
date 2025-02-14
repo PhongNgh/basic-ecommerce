@@ -22,7 +22,6 @@ class User:
 
     @classmethod
     def validate_password(cls, stored_password, provided_password):
-        """Kiểm tra mật khẩu"""
         return check_password_hash(stored_password, provided_password)
 
 class Product:
