@@ -26,3 +26,31 @@ document.querySelectorAll(".toast-item").forEach((toast) => {
         toast.remove();
     }, 3000); // 3 giây
 });
+
+document.querySelectorAll('.buy-now-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-product-id');
+
+        // Gửi sản phẩm vào giỏ hàng tạm thời
+        fetch(`/add_to_cart/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Sau khi thêm sản phẩm vào giỏ hàng, chuyển hướng tới checkout
+                window.location.href = "/checkout";
+            } else {
+                alert("Lỗi khi thêm sản phẩm vào giỏ hàng!");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Có lỗi xảy ra.");
+        });
+    });
+});

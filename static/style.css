@@ -27,8 +27,8 @@ h1, h2 {
 }
 
 .btn-warning {
-  background-color: #ffc107;
-  color: #333;
+  background-color: #f8a200; /* Màu cam */
+  color: white;
   font-weight: bold;
   border: none;
   border-radius: 50px;
@@ -36,88 +36,108 @@ h1, h2 {
 }
 
 .btn-warning:hover {
-  background-color: #e0a800;
+  background-color: #e67e00;
   transform: scale(1.05);
 }
 
-.btn-danger{
-  border-radius: 20px;
-}
-
-.btn-outline-danger {
-  background-color: #ff6b6b; /* Màu nền đỏ */
+.btn-danger {
+  background-color: #dc3545; /* Màu đỏ */
+  color: white;
   font-weight: bold;
-  border: none; /* Loại bỏ viền */
-  border-radius: 50px; /* Bo tròn giống nút Sửa */
-  padding: 10px 20px;
-  color: #fff;
-  box-shadow: none; /* Loại bỏ bóng viền */
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.btn-outline-danger:hover {
-  background-color: #ff3b3b;
-  transform: scale(1.05);
-}
-
-.btn-secondary {
-  background-color: #6c757d;
   border: none;
   border-radius: 50px;
-  align-items: center;
-  display: flex;
-  width: auto;
-  height: 40px;
-}
-
-.btn-outline-danger i {
-  font-size: 1rem;
-}
-
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-.btn-sm {
-  font-size: 0.875rem; /* Kích thước nhỏ */
-  padding: 5px 12px; /* Đồng nhất kích thước */
-  border-radius: 50px; /* Bo tròn các nút */
-  font-weight: 500;
-}
-
-.btn-info {
-  background-color: #17a2b8;
-  color: white;
-  border: none;
-}
-
-.btn-info:hover {
-  background-color: #138496;
-}
-
-/* Nút "Cập nhật" */
-.btn-primary {
-  background-color: #3e4684;
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #2b3566;
-}
-
-/* Nút "Xóa" */
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-  border: none;
+  padding: 10px 20px;
 }
 
 .btn-danger:hover {
   background-color: #a71d2a;
+  transform: scale(1.05);
+}
+
+/* Các card sản phẩm */
+.product-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Tự động điều chỉnh số lượng cột */
+    gap: 15px; /* Khoảng cách giữa các card */
+}
+
+.product-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-height: 400px; /* Đảm bảo tất cả các card có chiều cao tối thiểu bằng nhau */
+    height: 100%;
+}
+
+.product-card img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.product-card .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%; /* Đảm bảo card-body chiếm hết chiều cao */
+}
+
+/* Các nút trên trang index */
+.nav-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end; /* Căn các nút về phía bên phải */
+}
+
+.nav-buttons .btn {
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: bold;
+}
+
+.nav-buttons .btn-primary {
+    background-color: #3e4684;
+}
+
+.nav-buttons .btn-primary:hover {
+    background-color: #2b3566;
+}
+
+.nav-buttons .btn-danger {
+    background-color: #dc3545;
+}
+
+.nav-buttons .btn-danger:hover {
+    background-color: #a71d2a;
+}
+
+.nav-buttons .btn-secondary {
+    background-color: #6c757d;
+}
+
+.nav-buttons .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Responsive layout cho các card sản phẩm */
+@media (max-width: 768px) {
+    .product-container {
+        grid-template-columns: 1fr 1fr; /* Hiển thị 2 card mỗi dòng trên màn hình nhỏ */
+    }
+
+    .nav-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .product-card {
+        margin-bottom: 20px;
+    }
 }
 
 /* Layer 1 (Nền mờ) */
@@ -132,30 +152,152 @@ h1, h2 {
   z-index: 1000;
 }
 
-/* Layer 2 (Form popup) */
+.layer2 form {
+    width: 70%; /* Giảm width nếu muốn form rộng hơn */
+    max-width: 900px; /* Giới hạn chiều rộng tối đa của form */
+    margin: 0 auto; /* Căn giữa form */
+}
+
+.layer2 .mb-3 {
+    display: flex;
+    justify-content: space-between; /* Chia đều không gian */
+}
+
+.layer2 .form-control, .layer2 .form-select {
+    width: 48%;  /* Các trường sẽ chiếm 48% bề rộng của dòng */
+}
+
+.layer2 .form-control, .layer2 .form-select {
+    margin-right: 4%; /* Khoảng cách giữa các trường */
+}
+
+.layer2 .form-control:last-child, .layer2 .form-select:last-child {
+    margin-right: 0; /* Xóa margin của trường cuối */
+}
+
+/* Cập nhật nút Lưu và Hủy */
+.layer2 .d-flex {
+    display: flex;
+    justify-content: flex-end; /* Căn nút ra phía bên phải */
+    gap: 10px; /* Khoảng cách giữa các nút */
+}
+
+/* Ẩn form cho đến khi mở */
 .layer2 {
   display: none;
+  justify-content: flex-start;
+  align-items: flex-start;
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1010;
-  background: #ffffff;
+  width: 50%;
+  max-width: 600px;
+  height: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translate(-50%, -50%); /* Căn giữa */
+  z-index: 1000; /* Đảm bảo form ở trên nền mờ */
   padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  width: 400px;
-  max-width: 90%;
 }
 
-/*!* Form *!*/
-/*form {*/
-/*  background-color: #ffffff;*/
-/*  padding: 30px;*/
-/*  border-radius: 15px;*/
-/*  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);*/
-/*}*/
+.justify-content-end{
+    display: flex;
+    justify-content: space-between;  /* Căn hai nút ra đều */
+    gap: 10px;
+}
 
+/* Hiển thị khi có lớp .visible */
+.layer1.visible,
+.layer2.visible {
+  display: block;
+}
+
+/* Form sửa sản phẩm */
+.form-popup {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 70%; /* Thay đổi width để form rộng hơn */
+  max-width: 800px; /* Tăng kích thước tối đa */
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap; /* Đảm bảo các trường không bị chồng lên nhau */
+  gap: 20px; /* Khoảng cách giữa các trường */
+}
+
+/* Thêm trường nhập liệu */
+.form-control {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+/* Button */
+#form-submit-btn {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+#cancel-btn {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn-success, #cancel-btn{
+  width: 25%; /* Chiều rộng của mỗi nút bằng 45% */
+  padding: 12px 0;  /* Đảm bảo chiều cao đồng đều */
+  font-size: 19px;   /* Đảm bảo kích thước chữ vừa phải */
+  border-radius: 50%; /* Bo tròn các góc */
+  height: 50%;
+  margin-bottom: 10px;
+}
+
+/* Dàn đều các trường nhập liệu theo chiều ngang */
+.form-group {
+    display: flex;
+    flex-wrap: wrap;  /* Cho phép các trường xuống dòng nếu không đủ không gian */
+    gap: 20px;        /* Khoảng cách giữa các trường */
+    margin-bottom: 15px;
+}
+
+.form-field, .form-field select {
+    width: 100%;  /* Đảm bảo các trường chiếm hết chiều rộng của cột */
+    max-width: 100%;  /* Không giới hạn chiều rộng tối đa */
+}
+
+.form-field {
+    flex: 1 1 calc(33.333% - 20px); /* Chia 3 cột, trừ khoảng cách */
+    box-sizing: border-box;
+}
+
+.form-control, .form-select {
+    width: 100%;
+  max-width: 100%; /* Đảm bảo các trường chiếm hết chiều rộng của cột */
+}
+
+@media (max-width: 768px) {
+    .form-field {
+        flex: 1 1 100%;  /* Khi màn hình nhỏ hơn, các trường sẽ xuống hàng */
+    }
+}
+
+/* Thêm khoảng cách giữa các nút */
+.form-popup button {
+  margin-top: 20px;
+}
+
+.layer1.visible,
+.layer2.visible {
+  display: block;
+}
+
+/* Định dạng form */
 form label {
   font-weight: 500;
   margin-bottom: 8px;
@@ -163,13 +305,13 @@ form label {
 }
 
 form .form-control, form .form-select {
-    border-radius: 50px;
-    padding: 12px 20px;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    text-align: left; /* Căn giữa placeholder theo chiều ngang */
-    display: flex;
-    align-items: center; /* Căn giữa nội dung theo chiều dọc */
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  text-align: left;
+  display: flex;
+  align-items: center;
   height: 50px;
 }
 
@@ -220,7 +362,6 @@ form button:hover {
   text-align: right;
 }
 
-/* Hình ảnh sản phẩm */
 .table img {
   max-width: 70px;
   height: auto;
@@ -239,33 +380,33 @@ form button:hover {
 }
 
 .toast-item {
-    position: relative; /* Đảm bảo phần tử cha có thể định vị phần tử con */
-    background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    min-width: 300px;
-    border-left: 5px solid #4caf50;
-    animation: slide-in 0.3s ease-out, fade-out 0.3s ease-out 2.7s forwards;
-    position: relative;
+  position: relative;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  min-width: 300px;
+  border-left: 5px solid #4caf50;
+  animation: slide-in 0.3s ease-out, fade-out 0.3s ease-out 2.7s forwards;
+  position: relative;
 }
 
 .toast-item .toast-close {
-    position: absolute;
-    top: 10px;   /* Đưa lên phía trên */
-    right: 10px; /* Đưa về bên phải */
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #333;
-    font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
 }
 
 .toast-item .toast-close:hover {
-    color: #ff3b3b; /* Hiệu ứng đổi màu khi hover */
+  color: #ff3b3b;
 }
 
 .toast-item.error {
@@ -306,172 +447,64 @@ form button:hover {
     max-width: none;
     padding: 20px;
   }
+
+  .form-popup {
+    width: 100%;
+    padding: 20px;
+  }
 }
 
 /* Căn hai nút nằm ngang thay vì chồng lên nhau */
 .admin-actions {
-    display: flex;           /* Hiển thị theo hàng ngang */
-    align-items: center;     /* Căn giữa theo chiều dọc */
-    gap: 10px;               /* Khoảng cách giữa các nút */
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin: 10px;
+  padding-right: 10%;
 }
 
 /* Điều chỉnh nút để không bị chồng */
 .admin-actions a {
-    display: inline-block;   /* Đảm bảo nút có dạng block */
-    padding: 10px 15px;      /* Tăng padding để dễ bấm */
-    border-radius: 50px;     /* Bo tròn nút */
-    font-size: 16px;         /* Kích thước chữ */
-    font-weight: bold;       /* Làm đậm chữ */
-    text-decoration: none;   /* Xóa gạch chân */
-    text-align: center;      /* Căn giữa chữ */
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
 }
 
-.overlay {
-    display: none; /* Mặc định ẩn */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Làm mờ nền */
-    z-index: 999; /* Đặt cao hơn các nút */
+.admin-actions .btn {
+    margin-right: 10px;
+    padding: 8px 16px;
+    border-radius: 20px;
 }
 
-.overlay.active {
-    display: block;
+.btn-dt1{
+    background-color: #3c6fc3;
+    border-color: #3c6fc3;
 }
 
-.nav-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
+.btn-dt2{
+    background-color: #6c757d;
+    border-color: #6c757d;
 }
 
-
-.nav-buttons button, .nav-buttons a {
-    padding: 10px 20px;
-    font-size: 1rem;
-    text-align: center;
-    border-radius: 50px;
-    border: none;
-    white-space: nowrap;
+.btn-dt3{
+    background-color: #343a40;
+    border-color: #343a40;
 }
 
-.card-img-top {
-    width: 100%;
-    height: 250px;
-    margin: 10px 0;
-    object-fit: contain;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    background-color: white;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: scale(1.1);
-}
-
-.card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    overflow: hidden;
-}
-
-.card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.toast-item {
-    position: relative;
-    background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    min-width: 300px;
-    border-left: 5px solid #4caf50;
-    animation: slide-in 0.3s ease-out, fade-out 0.3s ease-out 2.7s forwards;
-    position: relative;
-}
-
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1055;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
-
-.toast-item {
-    background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    min-width: 300px;
-    border-left: 5px solid #4caf50;
-    animation: slide-in 0.3s ease-out, fade-out 0.3s ease-out 2.7s forwards;
-    position: relative;
-    pointer-events: auto;
-}
-
-.toast-item.success {
-    border-left-color: #4caf50;
-}
-
-.toast-item.danger {
-    border-left-color: #f44336;
-}
-
-.toast-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-}
-
-.toast-close {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-
-.toast-item .toast-close {
-    pointer-events: auto;
-}
-
-/* Thiết kế lại nút "Theo dõi đơn hàng" */
-.btn-track-order {
-    padding: 10px 20px; /* Đảm bảo padding đủ rộng để nút vừa với chữ */
-    font-size: 1rem; /* Đảm bảo kích thước chữ phù hợp */
-    border-radius: 50px; /* Bo tròn góc */
-    background-color: #6c757d; /* Màu nền giống nút "Tiếp tục mua hàng" */
-    color: #fff; /* Màu chữ trắng */
-    text-decoration: none; /* Không có gạch chân */
-    display: inline-block;
-    text-align: center;
-    width: auto;
-    transition: background-color 0.2s ease, transform 0.2s ease; /* Thêm hiệu ứng hover */
-}
-
-.btn-track-order:hover {
-    background-color: #5a6268; /* Màu nền khi hover */
-    transform: scale(1.05); /* Hiệu ứng phóng to khi hover */
+.text-center{
+  padding-bottom: 2%;
 }
 
 a{
-    text-decoration: none;
-    color: black;
+  text-decoration: none;
+  color: black;
 }
 
 a:hover{
-    color: #21a9d0;
+  color: #45c0e8;
 }
+
