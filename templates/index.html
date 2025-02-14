@@ -11,7 +11,7 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mt-4">
             <h1 class="text-primary">Chào bạn, {{ fullname }}</h1>
-            <div class="nav-buttons d-flex gap-2">
+            <div class="nav-buttons">
                 <a href="/order_tracking" class="btn btn-secondary">Theo dõi đơn hàng</a>
                 <a href="/cart" class="btn btn-primary">Giỏ hàng <span id="cart-count">{{ cart_count }}</span></a>
                 <a href="/logout" class="btn btn-danger">Logout</a>
@@ -20,23 +20,22 @@
 
         <h1 class="text-center mt-4">Danh sách sản phẩm</h1>
 
-        <div class="row mt-5">
+        <div class="product-container">
             {% for product in products %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <a href="{{ url_for('product_detail', product_id=product['_id']) }}">
-                        <img src="{{ product['image'] }}" class="card-img-top" alt="{{ product['name'] }}">
-                    </a>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">
-                            <a href="{{ url_for('product_detail', product_id=product['_id']) }}">
-                                {{ product['name'] }}
-                            </a></h5>
-                        <p class="card-text">Giá: {{ "{:,.0f}".format(product['price']) }} VND</p>
-                        <div class="d-flex justify-content-between mt-auto">
-                            <button class="btn btn-primary add-to-cart-btn" data-product-id="{{ product['_id'] }}">Thêm vào giỏ</button>
-                            <button class="btn btn-success buy-now-btn" data-product-id="{{ product['_id'] }}">Mua ngay</button>
-                        </div>
+            <div class="product-card">
+                <a href="{{ url_for('product_detail', product_id=product['_id']) }}">
+                    <img src="{{ product['image'] }}" class="card-img-top" alt="{{ product['name'] }}">
+                </a>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{{ url_for('product_detail', product_id=product['_id']) }}">
+                            {{ product['name'] }}
+                        </a>
+                    </h5>
+                    <p class="card-text">Giá: {{ "{:,.0f}".format(product['price']) }} VND</p>
+                    <div class="d-flex justify-content-between mt-auto">
+                        <button class="btn btn-primary add-to-cart-btn" data-product-id="{{ product['_id'] }}">Thêm vào giỏ</button>
+                        <button class="btn btn-success buy-now-btn" data-product-id="{{ product['_id'] }}">Mua ngay</button>
                     </div>
                 </div>
             </div>

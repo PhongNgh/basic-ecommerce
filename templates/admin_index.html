@@ -32,13 +32,13 @@
                 </thead>
                 <tbody>
                     {% for product in products %}
-                    <tr>
+                    <tr data-product-id="{{ product['_id'] }}">
                         <td><img src="{{ product['image'] }}" class="product-img"></td>
                         <td>{{ product['name'] }}</td>
                         <td>{{ "{:,.0f}".format(product['price']) }}</td>
                         <td>{{ product['quantity'] }}</td>
                         <td>
-                            <button class="btn btn-warning btn-edit me-2" onclick="openEditForm('{{ product['_id'] }}', '{{ product['name'] }}', '{{ product['price'] }}', '{{ product['quantity'] }}')">
+                            <button class="btn btn-warning btn-edit me-2 edit-btn">
                                 <i class="bi bi-pencil-fill"></i> Sửa
                             </button>
                             <form method="POST" action="/admin/delete_product/{{ product['_id'] }}" style="display:inline-block;">
@@ -47,6 +47,10 @@
                                 </button>
                             </form>
                         </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">Không có sản phẩm nào.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -63,70 +67,118 @@
     <!-- Layer 1 (Nền mờ) -->
     <div id="layer1" class="layer1"></div>
 
-    <!-- Layer 2 (Form Thêm sản phẩm) -->
+    <!-- Layer 2 for Edit Form -->
     <div id="layer2" class="layer2">
-        <form method="POST" enctype="multipart/form-data" id="productForm" class="form-popup">
-            <h3 id="form-title" class="text-center mb-4 fw-bold">Thêm sản phẩm</h3>
-            <div class="mb-3">
-                <label for="name" class="form-label">Tên sản phẩm:</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3">
-                <label for="price" class="form-label">Giá:</label>
-                <input type="number" class="form-control" id="price" name="price" required>
-            </div>
-            <div class="mb-3">
-                <label for="quantity" class="form-label">Số lượng:</label>
-                <input type="number" class="form-control" id="quantity" name="quantity" required>
-            </div>
-            <div class="mb-3">
-                <label for="image" class="form-label">Hình ảnh:</label>
-                <input type="file" class="form-control" id="image" name="image">
-            </div>
-            <!-- Thêm trường mô tả sản phẩm -->
-            <div class="mb-3">
-                <label for="description" class="form-label">Mô tả sản phẩm:</label>
-                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-            </div>
-            <input type="hidden" id="product_id" name="product_id">
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-success me-2 rounded-pill" id="form-submit-btn">Lưu</button>
-                <button type="button" id="cancel-btn" class="btn btn-secondary rounded-pill">Hủy</button>
-            </div>
-        </form>
+        <form id="editProductForm" method="POST" enctype="multipart/form-data" action="/admin/edit_product/{{ selected_product['_id'] if selected_product else '' }}">
+    <div class="form-group">
+        <div class="form-field">
+            <label for="name">Tên sản phẩm:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ selected_product['name'] if selected_product else '' }}" required>
+        </div>
+        <div class="form-field">
+            <label for="price">Giá:</label>
+            <input type="number" class="form-control" id="price" name="price" value="{{ selected_product['price'] if selected_product else '' }}" required>
+        </div>
+        <div class="form-field">
+            <label for="quantity">Số lượng:</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" value="{{ selected_product['quantity'] if selected_product else '' }}" required>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-field">
+            <label for="brand">Thương hiệu:</label>
+            <input type="text" class="form-control" id="brand" name="brand" value="{{ selected_product['brand'] if selected_product else '' }}" required>
+        </div>
+        <div class="form-field">
+            <label for="year">Năm sản xuất:</label>
+            <input type="number" class="form-control" id="year" name="year" value="{{ selected_product['year'] if selected_product else '' }}" required>
+        </div>
+        <div class="form-field">
+            <label for="origin">Nơi sản xuất:</label>
+            <input type="text" class="form-control" id="origin" name="origin" value="{{ selected_product['origin'] if selected_product else '' }}" required>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-field">
+            <label for="material">Chất liệu:</label>
+            <input type="text" class="form-control" id="material" name="material" value="{{ selected_product['material'] if selected_product else '' }}" required>
+        </div>
+        <div class="form-field">
+            <label for="technology">Công nghệ:</label>
+            <input type="text" class="form-control" id="technology" name="technology" value="{{ selected_product['technology'] if selected_product else '' }}" required>
+        </div>
+        <div class="form-field">
+            <label for="gender">Loại đồng hồ:</label>
+            <select class="form-select" id="gender" name="gender">
+                <option value="Nam" {% if selected_product and selected_product['gender'] == 'Nam' %}selected{% endif %}>Nam</option>
+                <option value="Nữ" {% if selected_product and selected_product['gender'] == 'Nữ' %}selected{% endif %}>Nữ</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="form-field">
+            <label for="size">Chọn kích thước:</label>
+            <select class="form-select" id="size" name="size">
+                <option value="36mm" {% if selected_product and selected_product['size'] == '36mm' %}selected{% endif %}>36mm</option>
+                <option value="38mm" {% if selected_product and selected_product['size'] == '38mm' %}selected{% endif %}>38mm</option>
+                <option value="40mm" {% if selected_product and selected_product['size'] == '40mm' %}selected{% endif %}>40mm</option>
+                <option value="42mm" {% if selected_product and selected_product['size'] == '42mm' %}selected{% endif %}>42mm</option>
+                <option value="44mm" {% if selected_product and selected_product['size'] == '44mm' %}selected{% endif %}>44mm</option>
+                <option value="46mm" {% if selected_product and selected_product['size'] == '46mm' %}selected{% endif %}>46mm</option>
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="image">Hình ảnh:</label>
+            <input type="file" class="form-control" id="image" name="image">
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-success me-2 rounded-pill">Lưu</button>
+        <button type="button" id="cancel-btn" class="btn btn-secondary rounded-pill">Hủy</button>
+    </div>
+</form>
     </div>
 
     <script>
-        // Hiển thị form thêm sản phẩm
-        document.getElementById("add-product-btn").addEventListener("click", function() {
-            document.getElementById("form-title").innerText = "Thêm sản phẩm";
-            document.getElementById("productForm").action = "/admin";
-            document.getElementById("name").value = "";
-            document.getElementById("price").value = "";
-            document.getElementById("quantity").value = "";
-            document.getElementById("image").required = true;
-            document.getElementById("product_id").value = "";
-            document.getElementById("layer1").style.display = "block";
-            document.getElementById("layer2").style.display = "flex";
-        });
+        document.addEventListener("DOMContentLoaded", function () {
+            // Hiển thị form thêm sản phẩm
+            document.getElementById("add-product-btn").addEventListener("click", function() {
+                document.getElementById("editProductForm").reset();
+                document.getElementById("editProductForm").action = "/admin";  // Chỉnh sửa theo đường dẫn của bạn
+                document.getElementById("layer1").classList.add("visible");
+                document.getElementById("layer2").classList.add("visible");
+            });
 
-        // Hiển thị form sửa sản phẩm
-        function openEditForm(id, name, price, quantity) {
-            document.getElementById("form-title").innerText = "Sửa sản phẩm";
-            document.getElementById("productForm").action = `/admin/edit_product/${id}`;
-            document.getElementById("name").value = name;
-            document.getElementById("price").value = price;
-            document.getElementById("quantity").value = quantity;
-            document.getElementById("image").required = false;
-            document.getElementById("product_id").value = id;
-            document.getElementById("layer1").style.display = "block";
-            document.getElementById("layer2").style.display = "flex";
-        }
+            // Lắng nghe sự kiện sửa sản phẩm
+            const editButtons = document.querySelectorAll('.edit-btn');
+            editButtons.forEach(function(button) {
+                button.addEventListener("click", function() {
+                    const row = button.closest('tr');
+                    const id = row.getAttribute('data-product-id');
+                    const name = row.querySelector('td:nth-child(2)').textContent;
+                    const price = row.querySelector('td:nth-child(3)').textContent.replace(/[^0-9]/g, '');  // Loại bỏ dấu phân cách
+                    const quantity = row.querySelector('td:nth-child(4)').textContent;
 
-        // Ẩn form và nền mờ
-        document.getElementById("cancel-btn").addEventListener("click", function() {
-            document.getElementById("layer1").style.display = "none";
-            document.getElementById("layer2").style.display = "none";
+                    // Điền dữ liệu vào form
+                    document.getElementById("name").value = name;
+                    document.getElementById("price").value = price;
+                    document.getElementById("quantity").value = quantity;
+
+                    document.getElementById("editProductForm").action = `/admin/edit_product/${id}`;
+                    document.getElementById("layer1").classList.add("visible");
+                    document.getElementById("layer2").classList.add("visible");
+                });
+            });
+
+            // Ẩn form và nền mờ khi nhấn "Hủy"
+            document.getElementById("cancel-btn").addEventListener("click", function() {
+                document.getElementById("layer1").classList.remove("visible");
+                document.getElementById("layer2").classList.remove("visible");
+            });
         });
     </script>
 </body>
