@@ -1,38 +1,66 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product['name'] }}</title>
+    <title>Product Detail</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <div class="admin-actions">
+        <a href="/order_tracking" class="btn btn-secondary btn-dt1 me-2">Theo dõi đơn hàng</a>
+        <a href="/cart" class="btn btn-primary btn-dt2 me-2">Giỏ hàng</a>
+        <a href="/" class="btn btn-dark btn-dt3">Quay lại</a>  <!-- Nút Quay lại -->
+    </div>
+
     <div class="container mt-5">
+        <h1 class="text-center">{{ product['name'] }}</h1>
         <div class="row">
             <div class="col-md-6">
-                <img src="{{ product['image'] }}" class="img-fluid" alt="{{ product['name'] }}">
+                <img src="{{ product['image'] }}" alt="{{ product['name'] }}" class="img-fluid">
             </div>
             <div class="col-md-6">
-                <h1>{{ product['name'] }}</h1>
-                <p><strong>Giá:</strong> {{ "{:,.0f}".format(product['price']) }} VND</p>
-
-                <!-- Thông tin sản phẩm -->
+                <p><strong>Giá:</strong> {{ product['price'] | format_price }} VND</p>
                 <p><strong>Thương hiệu:</strong> {{ product['brand'] }}</p>
                 <p><strong>Năm sản xuất:</strong> {{ product['year'] }}</p>
                 <p><strong>Nơi sản xuất:</strong> {{ product['origin'] }}</p>
                 <p><strong>Chất liệu:</strong> {{ product['material'] }}</p>
                 <p><strong>Công nghệ:</strong> {{ product['technology'] }}</p>
 
-                <!-- Phần mô tả sản phẩm -->
-                <h4>Mô tả:</h4>
-                <p>{{ product['description'] }}</p>
+                <!-- Loại đồng hồ -->
+                <div class="mb-3">
+                    <label for="gender" class="form-label">Loại đồng hồ:</label>
+                    <select class="form-select" id="gender" name="gender">
+                        <option value="Nam" {% if product['gender'] == 'Nam' %}selected{% endif %}>Nam</option>
+                        <option value="Nữ" {% if product['gender'] == 'Nữ' %}selected{% endif %}>Nữ</option>
+                    </select>
+                </div>
 
-                <!-- Các nút -->
-                <a href="{{ url_for('add_to_cart', product_id=product['_id']) }}" class="btn btn-success">Thêm vào giỏ</a>
-                <a href="{{ url_for('buy_now', product_id=product['_id']) }}" class="btn btn-primary">Mua ngay</a>
+                <!-- Chọn kích thước -->
+                <div class="mb-3">
+                    <label for="size" class="form-label">Chọn kích thước (đường kính mặt):</label>
+                    <select class="form-select" id="size" name="size">
+                        <option value="36mm" {% if product['size'] == '36mm' %}selected{% endif %}>36mm</option>
+                        <option value="38mm" {% if product['size'] == '38mm' %}selected{% endif %}>38mm</option>
+                        <option value="40mm" {% if product['size'] == '40mm' %}selected{% endif %}>40mm</option>
+                        <option value="42mm" {% if product['size'] == '42mm' %}selected{% endif %}>42mm</option>
+                        <option value="44mm" {% if product['size'] == '44mm' %}selected{% endif %}>44mm</option>
+                        <option value="46mm" {% if product['size'] == '46mm' %}selected{% endif %}>46mm</option>
+                    </select>
+                </div>
+
+                <!-- Mô tả sản phẩm -->
+                <p><strong>Mô tả:</strong> {{ product['description'] }}</p>
+
+                <!-- Thêm vào giỏ hàng hoặc mua ngay -->
+                <div class="d-flex">
+                    <button class="btn btn-success me-3">Thêm vào giỏ</button>
+                    <button class="btn btn-primary">Mua ngay</button>
+                </div>
             </div>
         </div>
     </div>
+
 </body>
 </html>
