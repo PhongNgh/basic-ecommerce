@@ -70,77 +70,84 @@
     <!-- Layer 2 for Edit Form -->
     <div id="layer2" class="layer2">
         <form id="editProductForm" method="POST" enctype="multipart/form-data" action="/admin/edit_product/{{ selected_product['_id'] if selected_product else '' }}">
-    <div class="form-group">
-        <div class="form-field">
-            <label for="name">Tên sản phẩm:</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{ selected_product['name'] if selected_product else '' }}" required>
-        </div>
-        <div class="form-field">
-            <label for="price">Giá:</label>
-            <input type="number" class="form-control" id="price" name="price" value="{{ selected_product['price'] if selected_product else '' }}" required>
-        </div>
-        <div class="form-field">
-            <label for="quantity">Số lượng:</label>
-            <input type="number" class="form-control" id="quantity" name="quantity" value="{{ selected_product['quantity'] if selected_product else '' }}" required>
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="form-field">
+                    <label for="name">Tên sản phẩm:</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ selected_product['name'] if selected_product else '' }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="price">Giá:</label>
+                    <input type="number" class="form-control" id="price" name="price" value="{{ selected_product['price'] if selected_product else '' }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="quantity">Số lượng:</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" value="{{ selected_product['quantity'] if selected_product else '' }}" required>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="form-field">
-            <label for="brand">Thương hiệu:</label>
-            <input type="text" class="form-control" id="brand" name="brand" value="{{ selected_product['brand'] if selected_product else '' }}" required>
-        </div>
-        <div class="form-field">
-            <label for="year">Năm sản xuất:</label>
-            <input type="number" class="form-control" id="year" name="year" value="{{ selected_product['year'] if selected_product else '' }}" required>
-        </div>
-        <div class="form-field">
-            <label for="origin">Nơi sản xuất:</label>
-            <input type="text" class="form-control" id="origin" name="origin" value="{{ selected_product['origin'] if selected_product else '' }}" required>
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="form-field">
+                    <label for="brand">Thương hiệu:</label>
+                    <input type="text" class="form-control" id="brand" name="brand" value="{{ selected_product['brand'] if selected_product else '' }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="year">Năm sản xuất:</label>
+                    <input type="number" class="form-control" id="year" name="year" value="{{ selected_product['year'] if selected_product else '' }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="origin">Nơi sản xuất:</label>
+                    <input type="text" class="form-control" id="origin" name="origin" value="{{ selected_product['origin'] if selected_product else '' }}" required>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="form-field">
-            <label for="material">Chất liệu:</label>
-            <input type="text" class="form-control" id="material" name="material" value="{{ selected_product['material'] if selected_product else '' }}" required>
-        </div>
-        <div class="form-field">
-            <label for="technology">Công nghệ:</label>
-            <input type="text" class="form-control" id="technology" name="technology" value="{{ selected_product['technology'] if selected_product else '' }}" required>
-        </div>
-        <div class="form-field">
-            <label for="gender">Loại đồng hồ:</label>
-            <select class="form-select" id="gender" name="gender">
-                <option value="Nam" {% if selected_product and selected_product['gender'] == 'Nam' %}selected{% endif %}>Nam</option>
-                <option value="Nữ" {% if selected_product and selected_product['gender'] == 'Nữ' %}selected{% endif %}>Nữ</option>
-            </select>
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="form-field">
+                    <label for="material">Chất liệu:</label>
+                    <input type="text" class="form-control" id="material" name="material" value="{{ selected_product['material'] if selected_product else '' }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="technology">Công nghệ:</label>
+                    <input type="text" class="form-control" id="technology" name="technology" value="{{ selected_product['technology'] if selected_product else '' }}" required>
+                </div>
+                <div class="form-field">
+                    <label for="gender">Loại đồng hồ:</label>
+                    <select class="form-select" id="gender" name="gender">
+                        <option value="Nam" {% if selected_product and selected_product['gender'] == 'Nam' %}selected{% endif %}>Nam</option>
+                        <option value="Nữ" {% if selected_product and selected_product['gender'] == 'Nữ' %}selected{% endif %}>Nữ</option>
+                    </select>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="form-field">
-            <label for="size">Chọn kích thước:</label>
-            <select class="form-select" id="size" name="size">
-                <option value="36mm" {% if selected_product and selected_product['size'] == '36mm' %}selected{% endif %}>36mm</option>
-                <option value="38mm" {% if selected_product and selected_product['size'] == '38mm' %}selected{% endif %}>38mm</option>
-                <option value="40mm" {% if selected_product and selected_product['size'] == '40mm' %}selected{% endif %}>40mm</option>
-                <option value="42mm" {% if selected_product and selected_product['size'] == '42mm' %}selected{% endif %}>42mm</option>
-                <option value="44mm" {% if selected_product and selected_product['size'] == '44mm' %}selected{% endif %}>44mm</option>
-                <option value="46mm" {% if selected_product and selected_product['size'] == '46mm' %}selected{% endif %}>46mm</option>
-            </select>
-        </div>
-        <div class="form-field">
-            <label for="image">Hình ảnh:</label>
-            <input type="file" class="form-control" id="image" name="image">
-        </div>
-    </div>
+            <div class="form-group group4">
+                <div class="form-field">
+                    <label for="description">Mô tả:</label>
+                    <textarea class="form-control" id="description" name="description">{{ selected_product['description'] if selected_product else '' }}</textarea>
+                </div>
+            </div>
 
-    <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-success me-2 rounded-pill">Lưu</button>
-        <button type="button" id="cancel-btn" class="btn btn-secondary rounded-pill">Hủy</button>
-    </div>
-</form>
+            <div class="form-group group5">
+                <div class="form-field">
+                    <label for="size">Chọn kích thước:</label>
+                    <select class="form-select" id="size" name="size">
+                        <option value="36mm" {% if selected_product and selected_product['size'] == '36mm' %}selected{% endif %}>36mm</option>
+                        <option value="38mm" {% if selected_product and selected_product['size'] == '38mm' %}selected{% endif %}>38mm</option>
+                        <option value="40mm" {% if selected_product and selected_product['size'] == '40mm' %}selected{% endif %}>40mm</option>
+                        <option value="42mm" {% if selected_product and selected_product['size'] == '42mm' %}selected{% endif %}>42mm</option>
+                        <option value="44mm" {% if selected_product and selected_product['size'] == '44mm' %}selected{% endif %}>44mm</option>
+                        <option value="46mm" {% if selected_product and selected_product['size'] == '46mm' %}selected{% endif %}>46mm</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="image">Hình ảnh:</label>
+                    <input type="file" class="form-control" id="image" name="image">
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success me-2 rounded-pill">Lưu</button>
+                <button type="button" id="cancel-btn" class="btn btn-secondary rounded-pill">Hủy</button>
+            </div>
+        </form>
     </div>
 
     <script>

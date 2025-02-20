@@ -6,6 +6,7 @@
     <title>Theo dõi đơn hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/scripts.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -17,6 +18,7 @@
                     <th>Tổng tiền</th>
                     <th>Trạng thái</th>
                     <th>Ngày tạo</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,11 +28,78 @@
                     <td>{{ "{:,.0f}".format(order['total_price']) }} VND</td>
                     <td>{{ order['status'] }}</td>
                     <td>{{ order['created_at'] }}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewOrderDetails('{{ order['_id'] }}')">Chi tiết</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         <a href="/" class="btn btn-primary">Tiếp tục mua hàng</a>
     </div>
+
+    <!-- Form chi tiết đơn hàng -->
+    <div id="orderDetailsLayer" class="layer2">
+        <div class="form-popup detail-order-tracking">
+            <h3 class="text-center mb-4">Chi tiết đơn hàng</h3>
+            <div id="order-details-content">
+                <!-- Nội dung chi tiết đơn hàng sẽ được thêm qua JavaScript -->
+            </div>
+            <button class="btn btn-secondary mt-3" onclick="closeOrderDetails()">Đóng</button>
+        </div>
+    </div>
+
+    <!-- Nền mờ -->
+    <div id="overlay" class="overlay"></div>
+
+    <script>
+        // Hàm xem chi tiết đơn hàng
+        function viewOrderDetails(orderId) {
+    fetch(`/tracking_orders_detail/${orderId}`)
+        .then(response => response.json())
+        .then(data => {
+            const detailsContent = document.getElementById("order-details-content");
+            detailsContent.innerHTML = `
+                <p><strong>Mã đơn hàng:</strong> ${data.order_id}</p>  <!-- Đảm bảo order_id được hiển thị -->
+                <p><strong>Khách hàng:</strong> ${data.customer_name}</p>
+                <p><strong>Địa chỉ giao hàng:</strong> ${data.address}</p>
+                <p><strong>Trạng thái:</strong> ${data.status}</p>
+                <p><strong>Tổng tiền:</strong> ${data.total_price.toLocaleString()} VND</p>
+                <h5>Danh sách sản phẩm:</h5>
+                <ul>
+                    ${data.items.map(item => `
+                        <li style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <img src="${item.image}" alt="${item.name}" style="width:50px; margin-right:10px;">
+                            <div>
+                                <strong>${item.name}</strong><br>
+                                ${item.quantity} x ${item.price.toLocaleString()} VND
+                            </div>
+                        </li>
+                    `).join("")}
+                </ul>
+            `;
+            document.getElementById("orderDetailsLayer").style.display = "flex";
+            document.getElementById("overlay").style.display = "block";
+        })
+        .catch(error => alert("Có lỗi xảy ra: " + error.message));
+}
+
+        // Hàm đóng overlay chi tiết
+        function closeOrderDetails() {
+            document.getElementById("orderDetailsLayer").style.display = "none";  // Ẩn form
+            hideOverlay();  // Ẩn nền mờ
+        }
+
+        // Hiển thị nền mờ khi mở overlay
+        function showOverlay() {
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        // Ẩn nền mờ khi đóng overlay
+        function hideOverlay() {
+            document.getElementById("overlay").style.display = "none";
+        }
+
+    </script>
 </body>
 </html>

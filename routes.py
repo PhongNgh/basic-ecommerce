@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, make_response, session
+from flask import render_template, request, redirect, url_for, flash, make_response, session, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity
 from werkzeug.security import check_password_hash
 
@@ -200,7 +200,7 @@ def checkout():
             "image": product["image"]
         }]
 
-        # Lưu giỏ hàng ảo vào session
+        # Lưu giỏ hàng ảo vào session (không ảnh hưởng đến giỏ hàng thật)
         session["temp_cart"] = cart_items
     else:
         # Nếu không có product_id, lấy giỏ hàng ảo từ session
@@ -218,6 +218,7 @@ def checkout():
             flash("Không có sản phẩm để thanh toán!", "danger")
             return redirect(url_for("cart"))
 
+        # Thêm đơn hàng vào cơ sở dữ liệu
         mongo.db.orders.insert_one({
             "user_id": current_user["username"],
             "items": cart_items,
@@ -229,11 +230,8 @@ def checkout():
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
 
-        # Sau khi thanh toán thành công, giỏ hàng ảo sẽ được xóa
+        # Sau khi thanh toán thành công, chỉ xóa giỏ hàng tạm trong session
         session.pop("temp_cart", None)
-
-        # Xóa giỏ hàng thật (nếu có) sau khi thanh toán
-        mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
 
         return redirect(url_for("order_complete"))
 
@@ -272,6 +270,7 @@ def admin_index():
         origin = request.form.get("origin")
         material = request.form.get("material")
         technology = request.form.get("technology")
+        description = request.form.get("description")  # Lấy mô tả từ form
         image_file = request.files.get("image")
 
         # Kiểm tra nếu có ảnh
@@ -300,6 +299,7 @@ def admin_index():
                         "origin": origin,
                         "material": material,
                         "technology": technology,
+                        "description": description,  # Cập nhật mô tả
                         "image": image_url if image_url else None
                     }}
                 )
@@ -318,6 +318,7 @@ def admin_index():
                         "origin": origin,
                         "material": material,
                         "technology": technology,
+                        "description": description,  # Thêm mô tả
                         "image": image_url
                     })
                     flash("Thêm sản phẩm thành công", "success")
@@ -376,7 +377,6 @@ def delete_order(order_id):
         flash(f'Lỗi khi xóa đơn hàng: {str(e)}', 'danger')
 
     return redirect(url_for("manage_orders"))
-
 
 @app.route("/admin/edit_product/<product_id>", methods=["GET", "POST"])
 @role_required("admin")
@@ -438,7 +438,6 @@ def format_price(value):
         return "{:,.0f}".format(value)  # Định dạng giá trị thành số có dấu phân cách hàng nghìn
     return value
 
-
 @app.route("/admin/order_details/<order_id>", methods=["GET"])
 @role_required("admin")
 def order_details(order_id):
@@ -484,6 +483,43 @@ def order_details(order_id):
     except Exception as e:
         print(f"Error fetching order details: {e}")
         return {"error": "Không thể tải chi tiết đơn hàng. Vui lòng thử lại sau."}, 500
+
+@app.route("/tracking_orders_detail/<order_id>")
+@role_required("member")
+def tracking_orders_detail(order_id):
+    order = mongo.db.orders.find_one({"_id": ObjectId(order_id)})
+    if not order:
+        return jsonify({"error": "Không tìm thấy đơn hàng"}), 404
+
+    # Lấy thông tin khách hàng
+    user = mongo.db.users.find_one({"username": order["user_id"]})
+    customer_name = user["full_name"] if user else "Unknown"
+
+    # Gộp các sản phẩm trong đơn hàng
+    aggregated_items = {}
+    for item in order["items"]:
+        key = item["name"]
+        if key not in aggregated_items:
+            aggregated_items[key] = {
+                "name": item["name"],
+                "price": item["price"],
+                "image": item["image"],
+                "quantity": item["quantity"]
+            }
+        else:
+            aggregated_items[key]["quantity"] += item["quantity"]
+
+    # Chuẩn bị thông tin chi tiết đơn hàng
+    order_details = {
+        "order_id": str(order["_id"]),  # Đảm bảo order_id được chuyển thành chuỗi
+        "customer_name": customer_name,
+        "address": order.get("address", "Không có thông tin"),
+        "status": order["status"],
+        "total_price": order["total_price"],
+        "items": list(aggregated_items.values())
+    }
+
+    return jsonify(order_details)
 
 @app.route("/logout")
 def logout():

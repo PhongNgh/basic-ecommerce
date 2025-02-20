@@ -17,8 +17,6 @@ h1, h2 {
   background-color: #3e4684;
   border: none;
   transition: background-color 0.2s ease, transform 0.2s ease;
-  border-radius: 50px;
-  padding: 10px 20px;
 }
 
 .btn-primary:hover {
@@ -69,14 +67,23 @@ h1, h2 {
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    min-height: 400px; /* Đảm bảo tất cả các card có chiều cao tối thiểu bằng nhau */
+    min-height: 400px;
     height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Thêm hiệu ứng chuyển động */
 }
 
+.product-card:hover {
+    transform: translateY(-5px); /* Di chuyển card lên một chút */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15); /* Tăng độ mờ bóng khi hover */
+}
+
+/* Sửa lại ảnh trong card để đảm bảo hiển thị đầy đủ */
 .product-card img {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 10px;
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
 .product-card .card-body {
@@ -84,6 +91,40 @@ h1, h2 {
     flex-direction: column;
     justify-content: space-between;
     height: 100%; /* Đảm bảo card-body chiếm hết chiều cao */
+}
+
+/* Sửa lại kiểu dáng cho nút Thêm vào giỏ và Mua ngay */
+.product-card .card-body .btn {
+    width: 48%; /* Đảm bảo hai nút chiếm 48% chiều rộng của mỗi card */
+    padding: 12px 0; /* Điều chỉnh chiều cao của nút */
+    font-size: 14px; /* Giữ kích thước chữ đồng đều */
+    border-radius: 50px; /* Bo tròn các góc của nút */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-align: center; /* Căn giữa nội dung trong nút */
+}
+
+/* Nút "Thêm vào giỏ" */
+.product-card .card-body .btn-primary {
+    background-color: #3e4684; /* Màu nền cho nút thêm vào giỏ */
+    border: none;
+}
+
+.product-card .card-body .btn-primary:hover {
+    background-color: #2b3566; /* Màu nền khi hover */
+    transform: scale(1.05);
+    height: auto;/* Hiệu ứng khi hover */
+}
+
+/* Nút "Mua ngay" */
+.product-card .card-body .btn-success {
+    background-color: #28a745; /* Màu nền cho nút mua ngay */
+    border: none;
+    height: auto;
+}
+
+.product-card .card-body .btn-success:hover {
+    background-color: #218838; /* Màu nền khi hover */
+    transform: scale(1.05); /* Hiệu ứng khi hover */
 }
 
 /* Các nút trên trang index */
@@ -101,6 +142,12 @@ h1, h2 {
 
 .nav-buttons .btn-primary {
     background-color: #3e4684;
+    font-size: 16px;
+    margin-top: 1px;
+}
+
+.nav-buttons .btn-secondary{
+    padding: 10px;
 }
 
 .nav-buttons .btn-primary:hover {
@@ -152,10 +199,45 @@ h1, h2 {
   z-index: 1000;
 }
 
+/* Sửa phần form trong layer2 */
 .layer2 form {
-    width: 70%; /* Giảm width nếu muốn form rộng hơn */
-    max-width: 900px; /* Giới hạn chiều rộng tối đa của form */
+    display: flex;
+    flex-wrap: wrap;  /* Cho phép các trường xuống dòng nếu không đủ không gian */
+    gap: 20px; /* Khoảng cách giữa các trường */
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
+    max-width: 1200px; /* Tăng giới hạn chiều rộng tối đa của form */
     margin: 0 auto; /* Căn giữa form */
+    padding: 30px;
+}
+
+.layer2 .form-field {
+    display: flex;
+    flex-direction: column; /* Đảm bảo mỗi trường có label và input riêng biệt */
+    flex: 1 1 28%; /* Các trường chiếm 48% chiều rộng của form, giúp dễ dàng dàn ngang */
+}
+
+.layer2 .form-field label {
+    margin-bottom: 8px; /* Khoảng cách giữa label và input */
+}
+
+.layer2 .form-control, .layer2 .form-select {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.layer2 .form-control:focus, .layer2 .form-select:focus {
+    border-color: #3e4684;
+    box-shadow: 0 0 5px rgba(62, 70, 132, 0.5);
+}
+
+.layer2 .d-flex {
+    display: flex;
+    justify-content: flex-end; /* Căn nút ra phía bên phải */
+    gap: 10px;
+
 }
 
 .layer2 .mb-3 {
@@ -180,31 +262,30 @@ h1, h2 {
     display: flex;
     justify-content: flex-end; /* Căn nút ra phía bên phải */
     gap: 10px; /* Khoảng cách giữa các nút */
+    padding-left: 35%;
 }
 
 /* Ẩn form cho đến khi mở */
 .layer2 {
   display: none;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: flex-start;
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 50%;
-  max-width: 600px;
+  width: 80%;
+  max-width: 900px;
   height: auto;
   background: white;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transform: translate(-50%, -50%); /* Căn giữa */
   z-index: 1000; /* Đảm bảo form ở trên nền mờ */
-  padding: 30px;
 }
 
 .justify-content-end{
     display: flex;
     justify-content: space-between;  /* Căn hai nút ra đều */
-    gap: 10px;
 }
 
 /* Hiển thị khi có lớp .visible */
@@ -219,12 +300,13 @@ h1, h2 {
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  width: 70%; /* Thay đổi width để form rộng hơn */
+  width: 100%; /* Thay đổi width để form rộng hơn */
   max-width: 800px; /* Tăng kích thước tối đa */
   overflow-y: auto;
   display: flex;
   flex-wrap: wrap; /* Đảm bảo các trường không bị chồng lên nhau */
   gap: 20px; /* Khoảng cách giữa các trường */
+  object-fit: fill;
 }
 
 /* Thêm trường nhập liệu */
@@ -250,12 +332,11 @@ h1, h2 {
 }
 
 .btn-success, #cancel-btn{
-  width: 25%; /* Chiều rộng của mỗi nút bằng 45% */
-  padding: 12px 0;  /* Đảm bảo chiều cao đồng đều */
+  width: auto; /* Chiều rộng của mỗi nút bằng 45% */
   font-size: 19px;   /* Đảm bảo kích thước chữ vừa phải */
-  border-radius: 50%; /* Bo tròn các góc */
-  height: 50%;
-  margin-bottom: 10px;
+  height: auto;
+    display: flex;
+    align-items: center;
 }
 
 /* Dàn đều các trường nhập liệu theo chiều ngang */
@@ -276,14 +357,51 @@ h1, h2 {
     box-sizing: border-box;
 }
 
-.form-control, .form-select {
-    width: 100%;
-  max-width: 100%; /* Đảm bảo các trường chiếm hết chiều rộng của cột */
+.layer2 form .form-control, .layer2 form .form-select {
+    width: 100%; /* Đảm bảo các trường chiếm hết chiều rộng của container */
+    max-width: 100%; /* Không giới hạn chiều rộng */
+    padding: 12px; /* Điều chỉnh padding nếu cần */
+}
+
+.layer2 form {
+    width: 80%; /* Tăng chiều rộng của form nếu cần */
+    max-width: 1000px; /* Tăng chiều rộng tối đa */
+    margin: 0 auto; /* Căn giữa form */
+}
+
+/* Cập nhật các trường nhập liệu trong form */
+.layer2 .form-group {
+    display: flex;
+    flex-wrap: nowrap; /* Cho phép các trường xuống dòng nếu không đủ không gian */
+    gap: 20px;        /* Khoảng cách giữa các trường */
+    margin-bottom: 15px;
+}
+
+.form-group.group4{
+    width: 700px;
+}
+
+.form-group.group5{
+    margin-right: 10px;
+    padding-left: 15%;
+}
+
+/* Điều chỉnh các trường nhập liệu */
+.layer2 .form-field {
+    flex: 1 1 calc(50% - 20px); /* Các trường chiếm 50% chiều rộng */
+}
+
+.layer2 #image {
+    width: 100%; /* Chiều rộng đầy đủ cho trường chọn ảnh */
 }
 
 @media (max-width: 768px) {
-    .form-field {
-        flex: 1 1 100%;  /* Khi màn hình nhỏ hơn, các trường sẽ xuống hàng */
+    .layer2 form {
+        flex-direction: column; /* Khi màn hình nhỏ, các trường sẽ xếp theo chiều dọc */
+    }
+
+    .layer2 .form-field {
+        flex: 1 1 100%; /* Các trường chiếm toàn bộ chiều rộng của form */
     }
 }
 
@@ -476,8 +594,9 @@ form button:hover {
 
 .admin-actions .btn {
     margin-right: 10px;
-    padding: 8px 16px;
+    padding: 10px 15px;
     border-radius: 20px;
+    font-size: 17px;
 }
 
 .btn-dt1{
@@ -508,3 +627,56 @@ a:hover{
   color: #45c0e8;
 }
 
+#editProductForm .form-control{
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+#editProductForm .form-control:focus {
+    border-color: #3e4684;
+    box-shadow: 0 0 5px rgba(62, 70, 132, 0.5);
+}
+
+#description {
+    height: 150px; /* Điều chỉnh chiều cao cho trường mô tả */
+}
+
+.buy-now-btn {
+    display: flex;
+    justify-content: center;
+}
+
+/* Ẩn form khi tải trang */
+#orderDetailsLayer {
+    display: none;  /* Ẩn form mặc định */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Căn giữa */
+    max-width: 500px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1050;
+    justify-content: center;
+}
+
+/* Ẩn overlay khi trang tải */
+.overlay {
+    display: none;  /* Ẩn nền mờ khi trang tải */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);  /* Màu nền mờ */
+    z-index: 1040; /* Overlay nằm dưới form */
+}
+
+.detail-order-tracking {
+    justify-content: center;
+}
