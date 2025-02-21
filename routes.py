@@ -90,6 +90,8 @@ def product_detail(product_id):
 def cart():
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
+
+    # Lấy giỏ hàng từ cơ sở dữ liệu của người dùng (giỏ hàng thật)
     cart_items = user.get("cart", [])
     total_price = sum(item["price"] * item["quantity"] for item in cart_items)
 
@@ -105,20 +107,21 @@ def cart():
 @role_required("member")
 def add_to_cart(product_id):
     try:
-        current_user = json.loads(get_jwt_identity())
-        product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
+        current_user = json.loads(get_jwt_identity())  # Lấy thông tin người dùng từ token
+        product = mongo.db.products.find_one({"_id": ObjectId(product_id)})  # Lấy sản phẩm từ MongoDB
 
         if product:
-            # Thêm sản phẩm vào giỏ (nếu đã có thì tăng số lượng)
+            # Lấy giỏ hàng hiện tại của người dùng từ cơ sở dữ liệu
             user = mongo.db.users.find_one({"username": current_user["username"]})
-            cart = user.get("cart", [])
+            cart = user.get("cart", [])  # Nếu không có giỏ hàng thì mặc định là một danh sách rỗng
 
             # Kiểm tra sản phẩm đã có trong giỏ hàng chưa
             for item in cart:
                 if item["product_id"] == str(product["_id"]):
-                    item["quantity"] += 1  # Nếu có thì tăng số lượng
+                    item["quantity"] += 1  # Nếu có, tăng số lượng sản phẩm lên 1
                     break
             else:
+                # Nếu không có, thêm sản phẩm mới vào giỏ hàng
                 cart.append({
                     "product_id": str(product["_id"]),
                     "name": product["name"],
@@ -127,21 +130,23 @@ def add_to_cart(product_id):
                     "image": product["image"]
                 })
 
-            # Cập nhật lại giỏ hàng trong database
+            # Cập nhật giỏ hàng trong cơ sở dữ liệu MongoDB
             mongo.db.users.update_one(
                 {"username": current_user["username"]},
                 {"$set": {"cart": cart}}
             )
 
-            # Tính lại số lượng sản phẩm trong giỏ
+            # Tính tổng số lượng sản phẩm trong giỏ hàng
             cart_count = sum(item["quantity"] for item in cart)
 
+            # Trả về thông báo thành công và số lượng giỏ hàng mới
             return {"message": "Sản phẩm đã được thêm vào giỏ hàng", "cart_count": cart_count}, 200
 
-        return {"error": "Không tìm thấy sản phẩm"}, 404
+        return {"error": "Không tìm thấy sản phẩm"}, 404  # Trả về lỗi nếu không tìm thấy sản phẩm
+
     except Exception as e:
-        print(f"Error: {e}")
-        return {"error": "Có lỗi xảy ra. Vui lòng thử lại sau."}, 500
+        print(f"Error: {e}")  # In ra lỗi nếu có vấn đề
+        return {"error": "Có lỗi xảy ra. Vui lòng thử lại sau."}, 500  # Trả về lỗi tổng quát
 
 @app.route("/update_cart/<product_id>/<action>")
 @role_required("member")
@@ -186,25 +191,25 @@ def checkout():
     current_user = json.loads(get_jwt_identity())
     user = mongo.db.users.find_one({"username": current_user["username"]})
 
-    # Lấy product_id từ URL khi nhấn "Mua ngay"
+    # Lấy giỏ hàng thật từ database
+    cart_items = user.get("cart", [])
+
+    # Kiểm tra xem có sản phẩm nào được chọn từ "Mua ngay" hay không
     product_id = request.args.get("product_id")
 
-    # Nếu có product_id, chúng ta sẽ lấy sản phẩm đó và tạo giỏ hàng ảo
     if product_id:
+        # Lấy sản phẩm từ cơ sở dữ liệu và tạo giỏ hàng tạm
         product = mongo.db.products.find_one({"_id": ObjectId(product_id)})
-        cart_items = [{
-            "product_id": str(product["_id"]),
-            "name": product["name"],
-            "price": product["price"],
-            "quantity": 1,
-            "image": product["image"]
-        }]
-
-        # Lưu giỏ hàng ảo vào session (không ảnh hưởng đến giỏ hàng thật)
-        session["temp_cart"] = cart_items
-    else:
-        # Nếu không có product_id, lấy giỏ hàng ảo từ session
-        cart_items = session.get("temp_cart", [])
+        if product:
+            cart_items = [{
+                "product_id": str(product["_id"]),
+                "name": product["name"],
+                "price": product["price"],
+                "quantity": 1,
+                "image": product["image"]
+            }]
+            # Lưu giỏ hàng tạm vào session nếu người dùng chọn "Mua ngay"
+            session["temp_cart"] = cart_items
 
     total_price = sum(item["price"] * item["quantity"] for item in cart_items)
 
@@ -230,8 +235,21 @@ def checkout():
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
 
-        # Sau khi thanh toán thành công, chỉ xóa giỏ hàng tạm trong session
+        # Cập nhật giỏ hàng thật trong database sau khi thanh toán
+        for item in cart_items:
+            product_id = ObjectId(item["product_id"])
+            product = mongo.db.products.find_one({"_id": product_id})
+
+            if product and product["quantity"] >= item["quantity"]:
+                # Cập nhật lại số lượng sản phẩm trong kho
+                new_quantity = product["quantity"] - item["quantity"]
+                mongo.db.products.update_one({"_id": product_id}, {"$set": {"quantity": new_quantity}})
+
+        # Xóa giỏ hàng tạm sau khi thanh toán thành công
         session.pop("temp_cart", None)
+
+        # Xóa giỏ hàng thật sau khi thanh toán thành công
+        mongo.db.users.update_one({"username": current_user["username"]}, {"$set": {"cart": []}})
 
         return redirect(url_for("order_complete"))
 
